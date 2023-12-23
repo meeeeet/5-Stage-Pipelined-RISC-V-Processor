@@ -12,9 +12,7 @@ initial begin
     rst=0;
     #20;
     rst=1;
-    #300
-    i=10;
-    $display("X%0.d=>%h",i,TEST.Decode.RegFile.Register[i]);    
+    #300   
     $finish;
 end
 
