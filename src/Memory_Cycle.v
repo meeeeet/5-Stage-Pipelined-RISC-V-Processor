@@ -28,7 +28,7 @@ Data_Memory DataMem(
 reg [31:0] ReadDataW_reg, RdW_reg, PCPlus4W_reg, ALUResultW_reg;
 reg RegWriteW_reg, ResultSrcW_reg;
 
-always @(negedge clk or negedge rst) begin
+always @(posedge clk or negedge rst) begin
     if(rst) begin
         ReadDataW_reg<=ReadDataM;
         RdW_reg<=RdM;

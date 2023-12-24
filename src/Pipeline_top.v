@@ -12,6 +12,7 @@
 `include "Register_File.v"
 `include "Sign_Extend.v"
 `include "Writeback_Cycle.v"
+`include "Hazard_unit.v"
 
 module Pipeline_top(clk,rst);
     input clk,rst;
@@ -22,8 +23,8 @@ module Pipeline_top(clk,rst);
     wire [4:0] RDE, RDM, RDW;
     wire [31:0] PCTargetE, InstrD, PCD, PCPlus4D, ResultW, RD1E, RD2E, ImmExtE, PCE, PCPlus4E, PCPlus4M, WriteDataM, ALUResultM;
     wire [31:0] PCPlus4W, ALUResultW, ReadDataW;
-    // wire [4:0] RS1_E, RS2_E;
-    // wire [1:0] ForwardBE, ForwardAE;
+    wire [4:0] RS1_E, RS2_E;
+    wire [1:0] ForwardBE, ForwardAE;
     
 
     // Module Initiation
@@ -59,7 +60,9 @@ module Pipeline_top(clk,rst);
         .ImmExtE(ImmExtE), 
         .RDE(RDE), 
         .PCE(PCE), 
-        .PCPlus4E(PCPlus4E)
+        .PCPlus4E(PCPlus4E),
+        .RS1E(RS1_E),
+        .RS2E(RS2_E)
     );
 
     // Execute Stage
@@ -86,10 +89,10 @@ module Pipeline_top(clk,rst);
             .RdM(RDM), 
             .PCPlus4M(PCPlus4M), 
             .WriteDataM(WriteDataM), 
-            .ALUResultM(ALUResultM)
-            // .ResultW(ResultW)
-            // .ForwardA_E(ForwardAE),
-            // .ForwardB_E(ForwardBE)
+            .ALUResultM(ALUResultM),
+            .ResultW(ResultW),
+            .ForwardAE(ForwardAE),
+            .ForwardBE(ForwardBE)
         );
     
     // Memory Stage
@@ -120,6 +123,18 @@ module Pipeline_top(clk,rst);
         .ALUResultW(ALUResultW), 
         .ReadDataW(ReadDataW), 
         .ResultW(ResultW)
+    );
+
+    Hazard_Unit HazardUnit(
+        .rst(rst), 
+        .RegWriteM(RegWriteM), 
+        .RegWriteW(RegWriteW), 
+        .RDM(RDM), 
+        .RDW(RDW), 
+        .RS1E(RS1_E), 
+        .RS2E(RS2_E), 
+        .ForwardAE(ForwardAE), 
+        .ForwardBE(ForwardBE)
     );
 
 endmodule

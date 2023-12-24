@@ -4,22 +4,26 @@
 
 module Execute_Cycle(clk, rst, RegWriteE, ResultSrcE, MemWriteE, BranchE, ALUControlE, ALUSrcE,
 RD1E,RD2E, PCE, RdE, ImmExtE,PCPlus4E, PCSrcE, PCTargetE, RegWriteM, ResultSrcM, MemWriteM, ALUResultM, 
-WriteDataM, RdM, PCPlus4M);
+WriteDataM, RdM, PCPlus4M, ResultW, ForwardAE, ForwardBE);
 
 //IO
 input clk, rst, RegWriteE, ResultSrcE, MemWriteE, BranchE;
 input [2:0] ALUControlE;
 input ALUSrcE;
 input [4:0] RdE;
-input [31:0] RD1E,RD2E, PCE, ImmExtE,PCPlus4E;
+input [31:0] RD1E,RD2E, PCE, ImmExtE,PCPlus4E, ResultW;
+input [1:0] ForwardAE, ForwardBE;
+
 output PCSrcE, RegWriteM, ResultSrcM, MemWriteM;
 output [31:0] ALUResultM, WriteDataM, PCPlus4M, PCTargetE;
 output [4:0] RdM;
 
 //Internal wires
+wire [31:0] SrcAE;
 wire [31:0] SrcBE;
 wire [31:0] ALUResultE;
 wire ZeroE;
+wire [31:0]RD2E_Mux;
 
 //Regs
 reg RegWriteM_reg, ResultSrcM_reg, MemWriteM_reg;
@@ -27,7 +31,7 @@ reg [31:0] ALUResultM_reg, WriteDataM_reg, PCPlus4M_reg;
 reg [4:0] RdM_reg;
 
 ALU ALU_E (
-    .A(RD1E),
+    .A(SrcAE),
     .B(SrcBE),
     .Result(ALUResultE),
     .ALUControl(ALUControlE),
@@ -44,19 +48,39 @@ PC_Adder ADDER_E(
 );
 
 Mux MUX_E(
-    .a(RD2E),
+    .a(RD2E_Mux),
     .b(ImmExtE),
     .s(ALUSrcE),
     .c(SrcBE)
 );
 
-always @(negedge clk or negedge rst) begin
+
+Mux_3_by_1 MUX3X1_1(
+    .a(RD1E),
+    .b(ResultW),
+    .c(ALUResultM),
+    .s(ForwardAE),
+    .d(SrcAE)
+);
+
+Mux_3_by_1 MUX3X1_2(
+    .a(RD2E),
+    .b(ResultW),
+    .c(ALUResultM),
+    .s(ForwardBE),
+    .d(RD2E_Mux)
+);
+
+
+
+
+always @(posedge clk or negedge rst) begin
     if (rst) begin
         RegWriteM_reg<=RegWriteE;
         ResultSrcM_reg<=ResultSrcE;
         MemWriteM_reg<=MemWriteE;
         ALUResultM_reg<=ALUResultE;
-        WriteDataM_reg<=RD2E;
+        WriteDataM_reg<=RD2E_Mux;
         RdM_reg<=RdE;
         PCPlus4M_reg<=PCPlus4E;
     end

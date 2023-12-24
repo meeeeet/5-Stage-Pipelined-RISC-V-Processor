@@ -4,7 +4,7 @@
 
 module Decode_Cycle(InstrD,PCD,PCPlus4D,clk,rst, RegWriteW, ResultW, RDW, //i/p
 RegWriteE, ResultSrcE, MemWriteE, BranchE, ALUSrcE, //o/p
-RD1E, RD2E, PCE, RDE, ImmExtE, PCPlus4E, ALUControlE);
+RD1E, RD2E, PCE, RDE, ImmExtE, PCPlus4E, ALUControlE, RS1E, RS2E);
 
 input clk,rst;
 input [31:0] InstrD, PCD, PCPlus4D;
@@ -18,6 +18,7 @@ output [4:0] RDE;
 output RegWriteE, MemWriteE, BranchE, ALUSrcE;
 output ResultSrcE;
 output [2:0] ALUControlE;
+output [4:0] RS1E, RS2E;
 
 
 //internal wires
@@ -26,6 +27,10 @@ wire [1:0]ImmSrcD;
 wire [2:0]ALUControlD;
 wire [31:0] RD1D,RD2D,ImmExtD;
 wire [4:0] RdD;
+wire [4:0] RS1D, RS2D;
+
+assign RS1D=InstrD[19:15];
+assign RS2D=InstrD[24:20];
 
 assign RdD=InstrD[11:7];
 
@@ -66,8 +71,9 @@ reg [4:0] RDD_reg;
 reg RegWriteD_reg, MemWriteD_reg, BranchD_reg, ALUSrcD_reg;
 reg [1:0] ResultSrcD_reg;
 reg [2:0] ALUControlD_reg;
+reg [4:0] RS1D_reg, RS2D_reg;
 
-always @(negedge clk or negedge rst) begin
+always @(posedge clk or negedge rst) begin
     if(rst) begin
         RD1D_reg<=RD1D;
         RD2D_reg<=RD2D;
@@ -81,6 +87,8 @@ always @(negedge clk or negedge rst) begin
         ALUSrcD_reg<=ALUSrcD;
         ResultSrcD_reg<=ResultSrcD;
         ALUControlD_reg<=ALUControlD;
+        RS1D_reg<=RS1D;
+        RS2D_reg<=RS2D;
     end
     else begin
         RD1D_reg<=32'd0;
@@ -95,6 +103,8 @@ always @(negedge clk or negedge rst) begin
         ALUSrcD_reg<=1'd0;
         ResultSrcD_reg<=1'd0;
         ALUControlD_reg<=3'd0;
+        RS1D_reg<=5'd0;
+        RS2D_reg<=5'd0;
     end
 end
 
@@ -110,6 +120,9 @@ assign BranchE=BranchD_reg;
 assign ALUSrcE=ALUSrcD_reg;
 assign ResultSrcE=ResultSrcD_reg;
 assign ALUControlE=ALUControlD_reg;
+assign RS1E=RS1D_reg;
+assign RS2E=RS2D_reg;
+// RS2D_reg<=RS2D;
 
 
 endmodule

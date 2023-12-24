@@ -38,7 +38,7 @@ Instruction_Memory I_MEM(
     .RD(InstrF)
 );
 
-always @(negedge clk or negedge rst) begin
+always @(posedge clk or negedge rst) begin
     if(rst) begin
         InstrF_reg<=InstrF;
         PCF_reg<=PCF;
