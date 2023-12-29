@@ -1,17 +1,49 @@
-module Hazard_Unit(
-    rst, RS1E,RS2E, ForwardAE, ForwardBE, RDM, RegWriteM, RDW, RegWriteW
-);
 
-input [4:0] RS1E, RS2E, RDM, RDW;
-input rst, RegWriteM, RegWriteW;
-output [1:0] ForwardAE,ForwardBE;
+module Hazard_Unit(input  [4:0] Rs1D, Rs2D, Rs1E, Rs2E,
+                input  [4:0] RdE, RdM, RdW,
+                input  RegWriteM, RegWriteW,
+				    input  ResultSrcE0, PCSrcE, rst,
+                output reg [1:0] ForwardAE, ForwardBE,
+                output StallD, StallF, FlushD, FlushE);
+					 
+// RAW					 
+// Whenever source register (Rs1E, Rs2E) in execution stage matchces with the destination register (RdM, RdW)
+// of a previous instruction's Memory or WriteBack stage forward the ALUResultM or ResultW
+// And also only when RegWrite is asserted
 
-assign ForwardAE = (rst == 1'b0) ? 2'b00 : 
-                    ((RegWriteM == 1'b1) & (RDM != 5'h00) & (RDM == RS1E)) ? 2'b10 :
-                    ((RegWriteW == 1'b1) & (RDW != 5'h00) & (RDW == RS1E)) ? 2'b01 : 2'b00;
-                       
-assign ForwardBE = (rst == 1'b0) ? 2'b00 : 
-                ((RegWriteM == 1'b1) & (RDM != 5'h00) & (RDM == RS2E)) ? 2'b10 :
-                ((RegWriteW == 1'b1) & (RDW != 5'h00) & (RDW == RS2E)) ? 2'b01 : 2'b00;
+wire lwStall;
+always @(*) begin
+ForwardAE = 2'b00;
+    ForwardBE = 2'b00;
+if ((Rs1E == RdM) & (RegWriteM) & (Rs1E != 0)) // higher priority - most recent
+    ForwardAE = 2'b10; // for forwarding ALU Result in Memory Stage
+else if ((Rs1E == RdW) & (RegWriteW) & (Rs1E != 0))
+    ForwardAE = 2'b01; // for forwarding WriteBack Stage Result
+            
+
+
+if ((Rs2E == RdM) & (RegWriteM) & (Rs2E != 0))
+    ForwardBE = 2'b10; // for forwarding ALU Result in Memory Stage
+
+else if ((Rs2E == RdW) & (RegWriteW) & (Rs2E != 0))
+    ForwardBE = 2'b01; // for forwarding WriteBack Stage Result
+
+end
+	  
+// For Load Word Dependency result does not appear until end of Data Memory Access Stage
+// if Destination register in EXE stage is equal to souce register in decode stage
+// stall previous instructions until the the load word is avialbe at the writeback stage
+// Introduce One cycle latency for subsequent instructions after load word 
+// There is two cycle difference between Memory Access and the immediate next instruction
+
+   assign lwStall = (ResultSrcE0 == 1) & ((RdE == Rs1D) | (RdE == Rs2D));
+//   assign FlushE = lwStall;
+	assign StallF = lwStall & (rst);
+	assign StallD = lwStall & rst;
+	
+// control hazard
+// whenever branch has been taken, we flush the following two instructions from decode and execute pip reg
+	assign FlushE = (lwStall | PCSrcE) & rst;
+	assign FlushD = PCSrcE & rst;
 
 endmodule

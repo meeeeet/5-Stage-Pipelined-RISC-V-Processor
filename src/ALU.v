@@ -1,26 +1,37 @@
-module ALU(A,B,Result,ALUControl,OverFlow,Carry,Zero,Negative);
+module ALU(A,B,Result,ALUControl,OverFlow,Zero,Negative);
 
-    input [31:0]A,B;
-    input [2:0]ALUControl;
-    output Carry,OverFlow,Zero,Negative;
-    output [31:0]Result;
+input  [31:0] A; 
+input  [31:0] B;
+input [3:0] ALUControl; 
+output reg  [31:0] Result;
+output wire Zero, Negative;
+output reg OverFlow;
 
-    wire Cout;
-    wire [31:0]Sum;
+wire [31:0] Sum;
 
-    assign Sum = (ALUControl[0] == 1'b0) ? A + B :
-                                          (A + ((~B)+1)) ;
-    assign {Cout,Result} = (ALUControl == 3'b000) ? Sum :
-                           (ALUControl == 3'b001) ? Sum :
-                           (ALUControl == 3'b010) ? A & B :
-                           (ALUControl == 3'b011) ? A | B :
-                           (ALUControl == 3'b101) ? {{32{1'b0}},(Sum[31])} :
-                           {33{1'b0}};
-    assign OverFlow = ((Sum[31] ^ A[31]) & 
-                      (~(ALUControl[0] ^ B[31] ^ A[31])) &
-                      (~ALUControl[1]));
-    assign Carry = ((~ALUControl[1]) & Cout);
-    assign Zero = &(~Result);
-    assign Negative = Result[31];
+
+assign Sum = A + (ALUControl[0] ? ~B : B) + ALUControl[0];  // sub using 1's complement
+
+
+assign Zero = (|Result) ? 1'b0:1'b1;
+assign Negative = Result[31];
+
+
+always @ (*) begin
+        OverFlow = ~(ALUControl[0] ^ B[31] ^ A[31]) & (A[31] ^ Sum[31]) & (~ALUControl[1]);
+		casex (ALUControl)
+				4'b000x: Result = Sum;				// sum or diff
+				4'b0010: Result = A & B;	// and
+				4'b0011: Result = A | B;	// or
+				4'b0100: Result = A << B;	// sll, slli
+				4'b0101: Result = {{30{1'b0}}, OverFlow ^ Sum[31]}; //slt, slti
+				4'b0110: Result = A ^ B;   // Xor
+				4'b0111: Result = A >> B;  // shift logic
+				4'b1000: Result = ($unsigned(A) < $unsigned(B)); //sltu, stlui
+				4'b1111: Result = A >>> B; //shift arithmetic
+				default: Result = 32'd0;
+		endcase
+        
+end
 
 endmodule

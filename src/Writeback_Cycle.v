@@ -3,16 +3,18 @@ module Writeback_Cycle(
     PCPlus4W, ResultW
 );
 
-input clk, rst, ResultSrcW;
+input clk, rst; 
+input [1:0] ResultSrcW;
 input [31:0] PCPlus4W, ALUResultW, ReadDataW;
 
 output [31:0] ResultW;
 
-Mux result_mux(    
+Mux_3_by_1 result_mux(    
 .a(ALUResultW),
 .b(ReadDataW),
+.c(PCPlus4W),
 .s(ResultSrcW),
-.c(ResultW)
+.d(ResultW)
 );
 
 endmodule

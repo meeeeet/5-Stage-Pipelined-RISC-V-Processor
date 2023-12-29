@@ -14,34 +14,51 @@
 `include "Writeback_Cycle.v"
 `include "Hazard_unit.v"
 
-module Pipeline_top(clk,rst);
-    input clk,rst;
+module Pipeline_top(clk1,clk2,rst);
+    input clk1,clk2,rst;
 
     // Declaration of Interim Wires
-    wire PCSrcE, RegWriteW, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, BranchE, RegWriteM, MemWriteM, ResultSrcM, ResultSrcW;
-    wire [2:0] ALUControlE;
+    wire PCSrcE, RegWriteW, RegWriteE, ALUSrcAE, MemWriteE, BranchE, RegWriteM, MemWriteM;
+    wire [1:0] ResultSrcM, ResultSrcW, ResultSrcE, ALUSrcBE;
+    wire JumpE;
+    wire [3:0] ALUControlE;
     wire [4:0] RDE, RDM, RDW;
-    wire [31:0] PCTargetE, InstrD, PCD, PCPlus4D, ResultW, RD1E, RD2E, ImmExtE, PCE, PCPlus4E, PCPlus4M, WriteDataM, ALUResultM;
+    wire [31:0] PCTargetE, PCPlus4F_Fed,InstrD, PCD, PCPlus4D, ResultW, RD1E, RD2E, ImmExtE, PCE, PCPlus4E, PCPlus4M, WriteDataM, ALUResultM;
     wire [31:0] PCPlus4W, ALUResultW, ReadDataW;
     wire [4:0] RS1_E, RS2_E;
     wire [1:0] ForwardBE, ForwardAE;
     
+    wire [31:0] PC;
 
+    wire StallD, StallF, FlushD, FlushE;
     // Module Initiation
     // Fetch Stage
+
+    PC_Module Program_Counter(
+        .clk(clk1),
+        .rst(rst),
+        .PC(PC),
+        .PCSrcE(PCSrcE),
+        .PCTargetE(PCTargetE),
+        .PCPlus4F(PCPlus4F_Fed),
+        .en(StallF)
+    );
+
     Fetch_Cycle Fetch (
-        .clk(clk), 
+        .clk(clk1), 
         .rst(rst), 
-        .PCSrcE(PCSrcE), 
-        .PCTargetE(PCTargetE), 
+        .PCF(PC),
         .InstrD(InstrD), 
         .PCD(PCD), 
-        .PCPlus4D(PCPlus4D)
+        .PCPlus4D(PCPlus4D),
+        .PCPlus4F_Fed(PCPlus4F_Fed),
+        .en(StallD),
+        .clr(FlushD)
     );
 
     // Decode Stage
     Decode_Cycle Decode (
-        .clk(clk), 
+        .clk(clk2), 
         .rst(rst), 
         .InstrD(InstrD), 
         .PCD(PCD), 
@@ -50,7 +67,9 @@ module Pipeline_top(clk,rst);
         .RDW(RDW), 
         .ResultW(ResultW), 
         .RegWriteE(RegWriteE), 
-        .ALUSrcE(ALUSrcE), 
+        .ALUSrcAE(ALUSrcAE), 
+        .ALUSrcBE(ALUSrcBE), 
+        .JumpE(JumpE), 
         .MemWriteE(MemWriteE), 
         .ResultSrcE(ResultSrcE),
         .BranchE(BranchE),  
@@ -62,15 +81,22 @@ module Pipeline_top(clk,rst);
         .PCE(PCE), 
         .PCPlus4E(PCPlus4E),
         .RS1E(RS1_E),
-        .RS2E(RS2_E)
+        .RS2E(RS2_E),
+        .Rs1D(Rs1D),
+        .Rs2D(Rs2D),
+        .clr(FlushE)
     );
+
+    wire [4:0] Rs1D,Rs2D;
 
     // Execute Stage
     Execute_Cycle Execute (
-            .clk(clk), 
+            .clk(clk1), 
             .rst(rst), 
             .RegWriteE(RegWriteE), 
-            .ALUSrcE(ALUSrcE), 
+            .ALUSrcAE(ALUSrcAE), 
+            .ALUSrcBE(ALUSrcBE), 
+            .JumpE(JumpE),
             .MemWriteE(MemWriteE), 
             .ResultSrcE(ResultSrcE), 
             .BranchE(BranchE), 
@@ -97,7 +123,7 @@ module Pipeline_top(clk,rst);
     
     // Memory Stage
     Memory_Cycle Memory (
-        .clk(clk), 
+        .clk(clk2), 
         .rst(rst), 
         .RegWriteM(RegWriteM), 
         .MemWriteM(MemWriteM), 
@@ -116,7 +142,7 @@ module Pipeline_top(clk,rst);
 
     // Write Back Stage
     Writeback_Cycle WriteBack (
-        .clk(clk), 
+        .clk(clk1), 
         .rst(rst), 
         .ResultSrcW(ResultSrcW), 
         .PCPlus4W(PCPlus4W), 
@@ -126,15 +152,25 @@ module Pipeline_top(clk,rst);
     );
 
     Hazard_Unit HazardUnit(
-        .rst(rst), 
         .RegWriteM(RegWriteM), 
         .RegWriteW(RegWriteW), 
-        .RDM(RDM), 
-        .RDW(RDW), 
-        .RS1E(RS1_E), 
-        .RS2E(RS2_E), 
+        .ResultSrcE0(ResultSrcE[0]),
+        .PCSrcE(PCSrcE),
+        .RdM(RDM), 
+        .RdW(RDW),
+        .RdE(RDE), 
+        .Rs1E(RS1_E), 
+        .Rs2E(RS2_E), 
+        .Rs1D(Rs1D),
+        .Rs2D(Rs2D),
         .ForwardAE(ForwardAE), 
-        .ForwardBE(ForwardBE)
+        .ForwardBE(ForwardBE),
+        .StallD(StallD), 
+        .StallF(StallF), 
+        .FlushD(FlushD), 
+        .FlushE(FlushE)
     );
+
+
 
 endmodule

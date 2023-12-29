@@ -6,12 +6,14 @@ module Memory_Cycle(
     RegWriteW, ResultSrcW, ReadDataW, RdW, PCPlus4W
 );
 
-input clk,rst,RegWriteM,ResultSrcM,MemWriteM;
+input clk,rst,RegWriteM,MemWriteM;
 input [31:0] ALUResultM, WriteDataM, PCPlus4M;
 input [4:0] RdM;
+input [1:0] ResultSrcM;
 
 output [31:0] ReadDataW, PCPlus4W, ALUResultW;
-output RegWriteW, ResultSrcW;
+output RegWriteW;
+output [1:0] ResultSrcW;
 output [4:0]RdW;
 
 wire [31:0] ReadDataM;
@@ -26,7 +28,8 @@ Data_Memory DataMem(
 );
 
 reg [31:0] ReadDataW_reg, RdW_reg, PCPlus4W_reg, ALUResultW_reg;
-reg RegWriteW_reg, ResultSrcW_reg;
+reg RegWriteW_reg;
+reg [1:0] ResultSrcW_reg;
 
 always @(posedge clk or negedge rst) begin
     if(rst) begin
@@ -43,7 +46,7 @@ always @(posedge clk or negedge rst) begin
         PCPlus4W_reg<=32'd0;
         ALUResultW_reg<=32'd0;
         RegWriteW_reg<=1'd0;
-        ResultSrcW_reg<=1'd0;
+        ResultSrcW_reg<=2'd0;
     end
 end
 
