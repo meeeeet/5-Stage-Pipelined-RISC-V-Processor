@@ -4,7 +4,7 @@ module ALU_Decoder(ALUOp,funct3,funct7,op,ALUControl);
     input [2:0]funct3;
     input [6:0]funct7,op;
     output reg [3:0]ALUControl;
-
+//
 wire RtypeSub;
 assign RtypeSub = funct7 & op[5]; // TRUE for R-type subtract
 always @ (*)
