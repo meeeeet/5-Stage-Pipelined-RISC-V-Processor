@@ -20,7 +20,8 @@ assign Negative = Result[31];
 always @ (*) begin
         OverFlow = ~(ALUControl[0] ^ B[31] ^ A[31]) & (A[31] ^ Sum[31]) & (~ALUControl[1]);
 		casex (ALUControl)
-				4'b000x: Result = Sum;				// sum or diff
+				4'b0000: Result = A+B;				// sum or diff
+				4'b0001: Result = A-B;				// sum or diff
 				4'b0010: Result = A & B;	// and
 				4'b0011: Result = A | B;	// or
 				4'b0100: Result = A << B;	// sll, slli

@@ -18,6 +18,12 @@ module Register_File(clk,rst,WE3,WD3,A1,A2,A3,RD1,RD2);
 
     initial begin
         Register[0] = 32'h00000000;
+        for (integer i=1; i<32; ++i) begin
+            Register[i]=32'hffff_ffff;
+        end
     end
 
+    always @(posedge clk) begin
+        $writememh("reg.hex",Register);
+    end
 endmodule

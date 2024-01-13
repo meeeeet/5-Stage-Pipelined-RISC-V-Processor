@@ -9,7 +9,7 @@ module Instruction_Memory(rst,A,RD);
   assign RD = (rst == 1'b0) ? {32{1'b0}} : mem[A[31:2]];
 
   initial begin
-    $readmemh("memfile.hex",mem);
+    $readmemh("instructions.hex",mem);
   end
 
 
