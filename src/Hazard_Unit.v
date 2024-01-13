@@ -6,10 +6,7 @@ module Hazard_Unit(input  [4:0] Rs1D, Rs2D, Rs1E, Rs2E,
                 output reg [1:0] ForwardAE, ForwardBE,
                 output StallD, StallF, FlushD, FlushE);
 					 
-// RAW					 
-// Whenever source register (Rs1E, Rs2E) in execution stage matchces with the destination register (RdM, RdW)
-// of a previous instruction's Memory or WriteBack stage forward the ALUResultM or ResultW
-// And also only when RegWrite is asserted
+
 
 wire lwStall;
 always @(*) begin
@@ -29,20 +26,13 @@ else if ((Rs2E == RdW) & (RegWriteW) & (Rs2E != 0))
     ForwardBE = 2'b01; // for forwarding WriteBack Stage Result
 
 end
-	  
-// For Load Word Dependency result does not appear until end of Data Memory Access Stage
-// if Destination register in EXE stage is equal to souce register in decode stage
-// stall previous instructions until the the load word is avialbe at the writeback stage
-// Introduce One cycle latency for subsequent instructions after load word 
-// There is two cycle difference between Memory Access and the immediate next instruction
+
 
    assign lwStall = (ResultSrcE0 == 1) & ((RdE == Rs1D) | (RdE == Rs2D));
 //   assign FlushE = lwStall;
 	assign StallF = lwStall & (rst);
 	assign StallD = lwStall & rst;
 	
-// control hazard
-// whenever branch has been taken, we flush the following two instructions from decode and execute pip reg
 	assign FlushE = (lwStall | PCSrcE) & rst;
 	assign FlushD = PCSrcE & rst;
 
