@@ -14,12 +14,12 @@ initial begin
     rst=0;
     #20;
     rst=1;
-    #3000  
+    #30000  
     $finish;
 end
 
 initial begin
-    forever #5 clk3=~clk3;
+    forever #1 clk3=~clk3;
 end
 
 
