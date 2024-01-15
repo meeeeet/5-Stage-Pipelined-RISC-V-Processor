@@ -18,9 +18,12 @@
 - ADD
 - SUB
 - SLL
+- SLT
 - XOR
 - SRL
 - SRA
 - OR
 - AND
+- BEQ
+- JAL
 
