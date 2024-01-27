@@ -14,8 +14,8 @@
 `include "Writeback_Cycle.v"
 `include "Hazard_unit.v"
 
-module Pipeline_top(clk1,clk2,rst);
-    input clk1,clk2,rst;
+module Pipeline_top(clk,rst);
+    input clk,rst;
 
     // Declaration of Interim Wires
     wire PCSrcE, RegWriteW, RegWriteE, ALUSrcAE, MemWriteE, BranchE, RegWriteM, MemWriteM;
@@ -35,7 +35,7 @@ module Pipeline_top(clk1,clk2,rst);
     // Fetch Stage
 
     PC_Module Program_Counter(
-        .clk(clk1),
+        .clk(clk),
         .rst(rst),
         .PC(PC),
         .PCSrcE(PCSrcE),
@@ -45,7 +45,7 @@ module Pipeline_top(clk1,clk2,rst);
     );
 
     Fetch_Cycle Fetch (
-        .clk(clk1), 
+        .clk(clk), 
         .rst(rst), 
         .PCF(PC),
         .InstrD(InstrD), 
@@ -58,7 +58,7 @@ module Pipeline_top(clk1,clk2,rst);
 
     // Decode Stage
     Decode_Cycle Decode (
-        .clk(clk2), 
+        .clk(clk), 
         .rst(rst), 
         .InstrD(InstrD), 
         .PCD(PCD), 
@@ -91,7 +91,7 @@ module Pipeline_top(clk1,clk2,rst);
 
     // Execute Stage
     Execute_Cycle Execute (
-            .clk(clk1), 
+            .clk(clk), 
             .rst(rst), 
             .RegWriteE(RegWriteE), 
             .ALUSrcAE(ALUSrcAE), 
@@ -123,7 +123,7 @@ module Pipeline_top(clk1,clk2,rst);
     
     // Memory Stage
     Memory_Cycle Memory (
-        .clk(clk2), 
+        .clk(clk), 
         .rst(rst), 
         .RegWriteM(RegWriteM), 
         .MemWriteM(MemWriteM), 
@@ -142,7 +142,7 @@ module Pipeline_top(clk1,clk2,rst);
 
     // Write Back Stage
     Writeback_Cycle WriteBack (
-        .clk(clk1), 
+        .clk(clk), 
         .rst(rst), 
         .ResultSrcW(ResultSrcW), 
         .PCPlus4W(PCPlus4W), 

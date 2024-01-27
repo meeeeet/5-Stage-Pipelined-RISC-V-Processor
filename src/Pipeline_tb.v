@@ -2,48 +2,32 @@
 
 module top_tb;
 
-reg clk1,clk2,rst;
-reg clk3=0;
+reg rst;
+reg clk=0;
 integer i;
 
-Pipeline_top TEST(clk3,clk3,rst);
+Pipeline_top TEST(clk,rst);
 
 initial begin
-    clk1=1'b0;
-    clk2=1'b0;
     rst=0;
     #20;
     rst=1;
-    #30000  
-    $finish;
+    #630 $finish;
+end
+
+always @(posedge clk) begin
+    $display("[%0t] fetched instruction: %h",$time, TEST.Fetch.InstrD);
 end
 
 initial begin
-    forever #1 clk3=~clk3;
+    forever #5 clk=~clk;
 end
 
 
-
-initial begin
-    forever begin
-        #1 clk1=1;
-        #4 clk1=0;
-        #5;
-    end
-end
-initial begin
-    #1
-    forever begin
-        #5 clk2=1;
-        #4 clk2=0;
-        #1;
-    end
-end
 
 initial begin
     $dumpfile("wave.vcd");
     $dumpvars();
 end
-
 
 endmodule
