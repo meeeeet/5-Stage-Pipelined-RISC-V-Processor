@@ -8,25 +8,12 @@ This project presents the successful implementation of a 5-staged pipelined RISC
 ![Microarchitecture (1)](https://github.com/meeeeet/5-Stage-Pipelined-RISC-V-Processor/assets/76646671/84371dc3-ebae-4851-8779-113b2568dc90)
 
 ## Supported Instructions
-- LW
-- SW
-- ADDI
-- SLTI
-- XORI
-- ORI
-- ANDI
-- SLLI
-- SRLI
-- SRAI
-- ADD
-- SUB
-- SLL
-- SLT
-- XOR
-- SRL
-- SRA
-- OR
-- AND
-- BEQ
-- JAL
+| LW   | SLLI | XOR |
+|------|------|-----|
+| SW   | SRLI | SRL |
+| ADDI | SRAI | SRA |
+| SLTI | ADD  | OR  |
+| XORI | SUB  | AND |
+| ORI  | SLL  | BEQ |
+| ANDI | SLT  | JAL |
 
